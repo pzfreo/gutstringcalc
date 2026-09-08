@@ -4,6 +4,7 @@ import {
 } from './strings.js';
 
 const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const defaults = () => ({
   inst: 'violin', pitch: 415, temperament: 'pure', mode: 'tension', n: 0.33,
@@ -16,6 +17,7 @@ function per(state, id = state.inst) {
   if (!state.per[id]) {
     const inst = INSTRUMENTS[id];
     state.per[id] = {
+      name: '',
       length: inst.length,
       density: DEFAULT_DENSITY,
       target: inst.tension,
@@ -103,6 +105,7 @@ function render() {
   const p = per(state);
 
   $('inst').value = state.inst;
+  setValue($('name'), p.name || '');
   setValue($('length'), p.length);
   setValue($('density'), p.density);
   setValue($('pitch'), state.pitch);
@@ -114,7 +117,18 @@ function render() {
   for (const group of ['temperament', 'mode', 'solve']) {
     for (const b of $(group).children) b.setAttribute('aria-pressed', b.dataset.v === state[group]);
   }
-  $('tableTitle').textContent = `${inst.label} · ${state.solve === 'gauge' ? 'gauges from tension' : 'tensions from gauge'}`;
+  const solveLabel = state.solve === 'gauge' ? 'gauges from tension' : 'tensions from gauge';
+  $('tableTitle').textContent = `${inst.label} · ${solveLabel}`;
+  $('printhead').innerHTML = [
+    ['Instrument', p.name ? `${esc(p.name)} (${inst.label})` : inst.label],
+    ['Vibrating length', `${p.length} mm`],
+    ['Pitch', `a′ = ${state.pitch} Hz, ${state.temperament === 'pure' ? 'pure intervals' : 'equal temperament'}`],
+    ['Density', `${p.density} g/cm³`],
+    ['Tension', state.mode === 'feel'
+      ? `equal feel, mean ${p.target} kg, n = ${Number(state.n).toFixed(2)}`
+      : `equal tension, ${p.target} kg`],
+    ['Solved for', solveLabel],
+  ].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
 
   if (builtFor !== `${state.inst}|${state.solve}`) buildTable();
 
@@ -145,7 +159,13 @@ function say(msg) {
 $('inst').innerHTML = Object.entries(INSTRUMENTS)
   .map(([id, i]) => `<option value="${id}">${i.label}</option>`).join('');
 
-$('inst').addEventListener('change', (e) => { state.inst = e.target.value; render(); });
+$('inst').addEventListener('change', (e) => {
+  // Drop focus first, or the guard in setValue leaves the previous instrument's
+  // name and measurements sitting in whichever field was being edited.
+  document.activeElement?.blur();
+  state.inst = e.target.value;
+  render();
+});
 
 const num = (id, apply) => {
   $(id).addEventListener('input', (e) => {
@@ -158,6 +178,8 @@ num('pitch', (v) => { state.pitch = v; });
 num('length', (v) => { per(state).length = v; });
 num('density', (v) => { per(state).density = v; });
 num('target', (v) => { per(state).target = v; });
+
+$('name').addEventListener('input', (e) => { per(state).name = e.target.value; render(); });
 
 $('n').addEventListener('input', (e) => { state.n = parseFloat(e.target.value); render(); });
 
@@ -184,6 +206,8 @@ $('rows').addEventListener('input', (e) => {
 
 $('rows').addEventListener('focusout', () => render());
 
+$('print').addEventListener('click', () => window.print());
+
 $('copyLink').addEventListener('click', async () => {
   save();
   try {
@@ -198,7 +222,8 @@ $('export').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `${state.inst}-${state.pitch}hz.json`;
+  const slug = (per(state).name || state.inst).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  a.download = `${slug || state.inst}-${state.pitch}hz.json`;
   a.click();
   URL.revokeObjectURL(a.href);
 });
