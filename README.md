@@ -25,6 +25,42 @@ Static site, no build step. Open `index.html`, or serve the directory and browse
 - **Save** — the full setup lives in the URL, so a bookmark or a copied link restores it.
   JSON export/import for keeping sets on disk.
 
+## The exported file
+
+Export writes a document describing one set — the instrument it is for, the settings it
+was calculated under, and the resulting strings — rather than a dump of what the app
+happened to be holding. It is meant to be read, kept with the instrument, or sent to a
+stringmaker as it stands.
+
+```json
+{
+  "format": "gutstringcalc/1",
+  "name": "Hoskin",
+  "instrument": "Treble viol",
+  "vibratingLength_mm": 390,
+  "pitch_Hz": 415,
+  "temperament": "pure",
+  "density_g_per_cm3": 1.3,
+  "scheme": "equal tension",
+  "targetTension_kg": 6,
+  "solvedFor": "gauge from tension",
+  "strings": [
+    { "note": "d", "frequency_Hz": 140.1, "gauge_mm": 2.2,
+      "tension_kg": 6, "breakAngle_deg": 153, "downbearing_kg": 2.8 }
+  ],
+  "totals": { "tension_kg": 36, "downbearing_kg": 16.81 }
+}
+```
+
+Under `equal feel`, `targetTension_kg` is the mean across the set and a
+`gradingExponent_n` field appears beside it.
+
+Import reads back only the inputs — instrument, length, pitch, temperament, density,
+scheme, target, break angles, and gauges when the file was solved for tension.
+Frequencies, tensions and downbearing are recalculated, so an edited file cannot carry
+numbers that contradict each other. `instrument` matches on the printed name or the
+internal id. Files exported before this format still load.
+
 ## The maths
 
 Tension from the Mersenne–Taylor law:

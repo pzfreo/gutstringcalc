@@ -120,7 +120,7 @@ function render() {
   const solveLabel = state.solve === 'gauge' ? 'gauges from tension' : 'tensions from gauge';
   $('tableTitle').textContent = `${inst.label} · ${solveLabel}`;
   $('printhead').innerHTML = [
-    ['Instrument', p.name ? `${esc(p.name)} (${inst.label})` : inst.label],
+    ['Instrument', p.name.trim() ? `${esc(p.name.trim())} (${inst.label})` : inst.label],
     ['Vibrating length', `${p.length} mm`],
     ['Pitch', `a′ = ${state.pitch} Hz, ${state.temperament === 'pure' ? 'pure intervals' : 'equal temperament'}`],
     ['Density', `${p.density} g/cm³`],
@@ -146,6 +146,70 @@ function render() {
   $('totalT').textContent = rows.reduce((a, r) => a + r.tension, 0).toFixed(2) + ' kg';
   $('totalD').textContent = rows.reduce((a, r) => a + r.down, 0).toFixed(2) + ' kg';
   save();
+}
+
+// The export is a document describing one set, not a dump of app state: readable,
+// self-describing, and carrying the results as well as the inputs so it stands on
+// its own when sent to a stringmaker.
+function toDocument() {
+  const inst = INSTRUMENTS[state.inst];
+  const p = per(state);
+  const rows = compute();
+  const name = (p.name || '').trim();
+  return {
+    format: 'gutstringcalc/1',
+    ...(name ? { name } : {}),
+    instrument: inst.label,
+    vibratingLength_mm: p.length,
+    pitch_Hz: state.pitch,
+    temperament: state.temperament === 'pure' ? 'pure' : 'equal',
+    density_g_per_cm3: p.density,
+    scheme: state.mode === 'feel' ? 'equal feel' : 'equal tension',
+    ...(state.mode === 'feel' ? { gradingExponent_n: +Number(state.n).toFixed(2) } : {}),
+    targetTension_kg: p.target,
+    solvedFor: state.solve === 'gauge' ? 'gauge from tension' : 'tension from gauge',
+    strings: rows.map((r) => ({
+      note: r.name,
+      frequency_Hz: +r.freq.toFixed(1),
+      gauge_mm: +r.gauge.toFixed(2),
+      tension_kg: +r.tension.toFixed(2),
+      breakAngle_deg: r.angle,
+      downbearing_kg: +r.down.toFixed(2),
+    })),
+    totals: {
+      tension_kg: +rows.reduce((a, r) => a + r.tension, 0).toFixed(2),
+      downbearing_kg: +rows.reduce((a, r) => a + r.down, 0).toFixed(2),
+    },
+  };
+}
+
+// Only the inputs are read back; frequencies, tensions and downbearing are
+// recalculated, so an edited document cannot hold contradictory numbers.
+function fromDocument(doc) {
+  const id = Object.keys(INSTRUMENTS).find((k) => k === doc.instrument
+    || INSTRUMENTS[k].label.toLowerCase() === String(doc.instrument).toLowerCase());
+  if (!id) throw new Error(`unknown instrument "${doc.instrument}"`);
+
+  const inst = INSTRUMENTS[id];
+  const strings = Array.isArray(doc.strings) ? doc.strings : [];
+  const s = defaults();
+  s.inst = id;
+  s.pitch = doc.pitch_Hz ?? s.pitch;
+  s.temperament = doc.temperament === 'equal' ? 'equal' : 'pure';
+  s.mode = doc.scheme === 'equal feel' ? 'feel' : 'tension';
+  s.n = doc.gradingExponent_n ?? s.n;
+  s.solve = doc.solvedFor === 'tension from gauge' ? 'tension' : 'gauge';
+  s.per[id] = {
+    name: doc.name || '',
+    length: doc.vibratingLength_mm ?? inst.length,
+    density: doc.density_g_per_cm3 ?? DEFAULT_DENSITY,
+    target: doc.targetTension_kg ?? inst.tension,
+    angles: inst.strings.map((_, i) => strings[i]?.breakAngle_deg ?? inst.angle),
+    gauges: s.solve === 'tension'
+      ? inst.strings.map((_, i) => strings[i]?.gauge_mm ?? null)
+      : null,
+  };
+  return s;
 }
 
 function say(msg) {
@@ -219,10 +283,10 @@ $('copyLink').addEventListener('click', async () => {
 });
 
 $('export').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(toDocument(), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  const slug = (per(state).name || state.inst).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const slug = (per(state).name.trim() || state.inst).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   a.download = `${slug || state.inst}-${state.pitch}hz.json`;
   a.click();
   URL.revokeObjectURL(a.href);
@@ -234,8 +298,13 @@ $('file').addEventListener('change', async (e) => {
   if (!f) return;
   try {
     const loaded = JSON.parse(await f.text());
-    if (!INSTRUMENTS[loaded.inst]) throw new Error('unknown instrument');
-    state = Object.assign(defaults(), loaded);
+    // `per` marks a file exported before the document format.
+    if (loaded.per) {
+      if (!INSTRUMENTS[loaded.inst]) throw new Error('unknown instrument');
+      state = Object.assign(defaults(), loaded);
+    } else {
+      state = fromDocument(loaded);
+    }
     builtFor = null;
     render();
     say(`Loaded ${f.name}.`);
