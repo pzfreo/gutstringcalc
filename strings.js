@@ -3,36 +3,38 @@
 
 export const G = 9.80665;            // m/s^2, for kgf <-> newton
 export const DEFAULT_DENSITY = 1.30; // g/cm^3, plain gut
-export const DEFAULT_ANGLE = 158;    // degrees, included angle over the bridge
+
+// Included angle over the bridge, in degrees. Viols carry a flatter break than
+// the violin family, so each instrument names its own default.
 
 // Semitone offsets from a' (A4). Helmholtz names as used by players.
 export const INSTRUMENTS = {
   violin: {
-    label: 'Violin', family: 'violin', length: 328, tension: 5.0,
+    label: 'Violin', family: 'violin', length: 328, tension: 5.0, angle: 158,
     strings: [['g', -14], ["d'", -7], ["a'", 0], ["e''", 7]],
   },
   viola: {
-    label: 'Viola', family: 'violin', length: 375, tension: 4.8,
+    label: 'Viola', family: 'violin', length: 375, tension: 4.8, angle: 158,
     strings: [['c', -21], ['g', -14], ["d'", -7], ["a'", 0]],
   },
   cello: {
-    label: 'Cello', family: 'violin', length: 690, tension: 7.0,
+    label: 'Cello', family: 'violin', length: 690, tension: 7.0, angle: 158,
     strings: [['C', -33], ['G', -26], ['d', -19], ['a', -12]],
   },
   treble: {
-    label: 'Treble viol', family: 'viol', length: 325, tension: 3.2,
+    label: 'Treble viol', family: 'viol', length: 325, tension: 3.2, angle: 152,
     strings: [['d', -19], ['g', -14], ["c'", -9], ["e'", -5], ["a'", 0], ["d''", 5]],
   },
   tenor: {
-    label: 'Tenor viol', family: 'viol', length: 450, tension: 3.8,
+    label: 'Tenor viol', family: 'viol', length: 450, tension: 3.8, angle: 152,
     strings: [['G', -26], ['c', -21], ['f', -16], ['a', -12], ["d'", -7], ["g'", -2]],
   },
   bass: {
-    label: 'Bass viol', family: 'viol', length: 690, tension: 4.2,
+    label: 'Bass viol', family: 'viol', length: 690, tension: 4.2, angle: 152,
     strings: [['D', -31], ['G', -26], ['c', -21], ['e', -17], ['a', -12], ["d'", -7]],
   },
   bass7: {
-    label: 'Bass viol, 7-string', family: 'viol', length: 690, tension: 4.2,
+    label: 'Bass viol, 7-string', family: 'viol', length: 690, tension: 4.2, angle: 152,
     strings: [['A,', -36], ['D', -31], ['G', -26], ['c', -21], ['e', -17], ['a', -12], ["d'", -7]],
   },
 };
