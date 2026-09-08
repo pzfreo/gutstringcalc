@@ -62,16 +62,52 @@ function compute() {
   });
 }
 
+// The table structure only changes with the instrument or the solve direction, so
+// build it once and patch the numbers afterwards. Rebuilding it on every keystroke
+// would take the focus out of whichever box is being typed into.
+let builtFor = null;
+let cells = [];
+
+function buildTable() {
+  const inst = INSTRUMENTS[state.inst];
+  const editGauge = state.solve === 'tension';
+  const tbody = $('rows');
+  tbody.innerHTML = inst.strings.map(([name], i) => `
+    <tr>
+      <td class="note">${name}<small>string ${i + 1}</small></td>
+      <td data-label="Hz"></td>
+      <td data-label="Gauge mm">${editGauge
+        ? `<input type="number" class="wide" data-k="gauges" data-i="${i}" min="0.1" max="6" step="0.01" inputmode="decimal">`
+        : '<span class="big calc"></span>'}</td>
+      <td data-label="Tension kg" class="big${editGauge ? ' calc' : ''}"></td>
+      <td data-label="Angle °"><input type="number" data-k="angles" data-i="${i}" min="90" max="180" step="0.5" inputmode="decimal"></td>
+      <td data-label="Down kg"></td>
+    </tr>`).join('');
+
+  cells = [...tbody.rows].map((tr) => ({
+    freq: tr.cells[1],
+    gauge: tr.cells[2].firstElementChild,
+    tension: tr.cells[3],
+    angle: tr.cells[4].firstElementChild,
+    down: tr.cells[5],
+  }));
+  builtFor = `${state.inst}|${state.solve}`;
+}
+
+// Leave the focused field alone: writing a rounded value back mid-edit swallows a
+// half-typed decimal point and jumps the caret.
+const setValue = (el, v) => { if (el !== document.activeElement) el.value = v; };
+
 function render() {
   const inst = INSTRUMENTS[state.inst];
   const p = per(state);
 
   $('inst').value = state.inst;
-  $('length').value = p.length;
-  $('density').value = p.density;
-  $('pitch').value = state.pitch;
-  $('target').value = p.target;
-  $('n').value = state.n;
+  setValue($('length'), p.length);
+  setValue($('density'), p.density);
+  setValue($('pitch'), state.pitch);
+  setValue($('target'), p.target);
+  setValue($('n'), state.n);
   $('nOut').textContent = Number(state.n).toFixed(2);
   $('feelField').hidden = state.mode !== 'feel';
   $('targetLabel').textContent = state.mode === 'feel' ? 'Mean tension (kg)' : 'Target tension (kg)';
@@ -80,20 +116,18 @@ function render() {
   }
   $('tableTitle').textContent = `${inst.label} · ${state.solve === 'gauge' ? 'gauges from tension' : 'tensions from gauge'}`;
 
-  const rows = compute();
-  const editGauge = state.solve === 'tension';
+  if (builtFor !== `${state.inst}|${state.solve}`) buildTable();
 
-  $('rows').innerHTML = rows.map((r, i) => `
-    <tr>
-      <td class="note">${r.name}<small>string ${i + 1}</small></td>
-      <td data-label="Hz">${r.freq.toFixed(1)}</td>
-      <td data-label="Gauge mm">${editGauge
-        ? `<input type="number" class="wide" data-k="gauges" data-i="${i}" min="0.1" max="6" step="0.01" value="${r.gauge.toFixed(2)}">`
-        : `<span class="big calc">${r.gauge.toFixed(2)}</span>`}</td>
-      <td data-label="Tension kg" class="big${editGauge ? ' calc' : ''}">${r.tension.toFixed(2)}</td>
-      <td data-label="Angle °"><input type="number" data-k="angles" data-i="${i}" min="90" max="180" step="0.5" value="${r.angle}"></td>
-      <td data-label="Down kg">${r.down.toFixed(2)}</td>
-    </tr>`).join('');
+  const rows = compute();
+  rows.forEach((r, i) => {
+    const c = cells[i];
+    c.freq.textContent = r.freq.toFixed(1);
+    if (c.gauge.tagName === 'INPUT') setValue(c.gauge, r.gauge.toFixed(2));
+    else c.gauge.textContent = r.gauge.toFixed(2);
+    c.tension.textContent = r.tension.toFixed(2);
+    setValue(c.angle, r.angle);
+    c.down.textContent = r.down.toFixed(2);
+  });
 
   $('totalT').textContent = rows.reduce((a, r) => a + r.tension, 0).toFixed(2) + ' kg';
   $('totalD').textContent = rows.reduce((a, r) => a + r.down, 0).toFixed(2) + ' kg';
@@ -113,10 +147,13 @@ $('inst').innerHTML = Object.entries(INSTRUMENTS)
 
 $('inst').addEventListener('change', (e) => { state.inst = e.target.value; render(); });
 
-const num = (id, apply) => $(id).addEventListener('input', (e) => {
-  const v = parseFloat(e.target.value);
-  if (Number.isFinite(v) && v > 0) { apply(v); render(); }
-});
+const num = (id, apply) => {
+  $(id).addEventListener('input', (e) => {
+    const v = parseFloat(e.target.value);
+    if (Number.isFinite(v) && v > 0) { apply(v); render(); }
+  });
+  $(id).addEventListener('blur', render);
+};
 num('pitch', (v) => { state.pitch = v; });
 num('length', (v) => { per(state).length = v; });
 num('density', (v) => { per(state).density = v; });
@@ -145,6 +182,8 @@ $('rows').addEventListener('input', (e) => {
   render();
 });
 
+$('rows').addEventListener('focusout', () => render());
+
 $('copyLink').addEventListener('click', async () => {
   save();
   try {
@@ -172,6 +211,7 @@ $('file').addEventListener('change', async (e) => {
     const loaded = JSON.parse(await f.text());
     if (!INSTRUMENTS[loaded.inst]) throw new Error('unknown instrument');
     state = Object.assign(defaults(), loaded);
+    builtFor = null;
     render();
     say(`Loaded ${f.name}.`);
   } catch (err) {
@@ -182,6 +222,7 @@ $('file').addEventListener('change', async (e) => {
 
 $('reset').addEventListener('click', () => {
   delete state.per[state.inst];
+  builtFor = null;
   render();
   say(`${INSTRUMENTS[state.inst].label} back to presets.`);
 });
