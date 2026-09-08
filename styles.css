@@ -171,16 +171,27 @@ footer code { font-size: .95em; }
   .printhead dt { color: var(--muted); font-size: 9pt; }
   .printhead dd { margin: 0; font-weight: 600; }
 
-  /* Always the table, never the narrow-screen cards. */
-  table, thead, tbody, tfoot, tr { display: revert; }
-  td, th { display: revert; }
+  /* Always the table, never the narrow-screen cards. Printing from a phone lays
+     out at the device width, so the max-width rules above are live and have to be
+     beaten on their own terms: same selectors, explicit values, no `revert`. */
+  table { display: table; }
   thead { display: table-header-group; }
-  tbody td::before, tfoot td::before { display: none; }
-  tbody tr { border: 0; padding: 0; display: table-row; }
+  tbody { display: table-row-group; }
+  tfoot { display: table-footer-group; }
+  thead tr, tbody tr, tfoot tr {
+    display: table-row; grid-template-columns: none; gap: 0;
+    border: 0; padding: 0; margin: 0; break-inside: avoid;
+  }
+  thead th, tbody td, tfoot td {
+    display: table-cell; border: 0; border-top: 1px solid var(--line);
+    padding: .35rem .5rem; text-align: right; order: 0;
+  }
+  thead th { border-top: 0; }
+  thead th:first-child, tbody td:first-child, tfoot td:first-child { text-align: left; }
+  tbody td::before, tfoot td::before { content: none; }
   tbody tr:hover { background: none; }
-  tbody td, tfoot td { border-top: 1px solid var(--line); padding: .35rem .5rem; text-align: right; }
-  tbody td:first-child, tfoot td:first-child { text-align: left; }
-  tbody tr, tfoot tr { break-inside: avoid; }
+  tbody td:first-child { grid-column: auto; margin: 0; }
+  tfoot td:first-child { display: table-cell; }
 
   /* Values, not editable boxes. */
   td input[type=number], td input[type=number].wide {
