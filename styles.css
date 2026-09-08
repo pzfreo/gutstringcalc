@@ -1,0 +1,148 @@
+:root {
+  --bg: #f6f4f0;
+  --panel: #fffdfa;
+  --ink: #221d17;
+  --muted: #7b7266;
+  --line: #e2dcd2;
+  --accent: #9a5b21;
+  --accent-soft: #f3e6d6;
+  --field: #fff;
+  --shadow: 0 1px 2px rgba(34, 29, 23, .06), 0 8px 24px rgba(34, 29, 23, .05);
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17150f;
+    --panel: #201d16;
+    --ink: #f0ebe2;
+    --muted: #9d9384;
+    --line: #343026;
+    --accent: #d99b52;
+    --accent-soft: #33291c;
+    --field: #191710;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "tnum" 1;
+}
+h1 { font-size: 1.35rem; margin: 0; letter-spacing: -.01em; }
+h2 {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--muted); margin: 0 0 .9rem; font-weight: 600;
+}
+p { margin: 0; }
+
+header {
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  padding: 1rem 1.25rem;
+}
+header .wrap { max-width: 1180px; margin: 0 auto; display: flex; align-items: baseline; gap: .85rem; flex-wrap: wrap; }
+header .sub { color: var(--muted); font-size: .85rem; }
+
+main {
+  max-width: 1180px; margin: 0 auto; padding: 1.25rem;
+  display: grid; gap: 1.25rem; grid-template-columns: 340px minmax(0, 1fr);
+  align-items: start;
+}
+@media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; } }
+
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.1rem;
+}
+.card + .card { margin-top: 1rem; }
+
+label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: .3rem; }
+.field { margin-bottom: .9rem; }
+.field:last-child { margin-bottom: 0; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+
+input[type=number], select, input[type=range] { width: 100%; font: inherit; color: var(--ink); }
+input[type=number], select {
+  background: var(--field); border: 1px solid var(--line); border-radius: 8px;
+  padding: .5rem .6rem; appearance: none;
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%237b7266' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right .65rem center; background-size: 11px;
+  padding-right: 2rem;
+}
+input:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+
+.seg { display: flex; background: var(--field); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 3px; }
+.seg button {
+  flex: 1; font: inherit; font-size: .85rem; padding: .42rem .3rem; border: 0; border-radius: 6px;
+  background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap;
+}
+.seg button[aria-pressed=true] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+.slider { display: flex; align-items: center; gap: .7rem; }
+.slider input[type=range] { flex: 1; accent-color: var(--accent); }
+.slider output { font-variant-numeric: tabular-nums; font-size: .85rem; min-width: 2.4rem; text-align: right; color: var(--ink); }
+.hint { font-size: .75rem; color: var(--muted); margin-top: .45rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.actions button {
+  font: inherit; font-size: .82rem; padding: .45rem .8rem; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--field); color: var(--ink);
+}
+.actions button:hover { border-color: var(--accent); color: var(--accent); }
+
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+  font-weight: 600; text-align: right; padding: 0 .5rem .55rem; white-space: nowrap;
+}
+thead th:first-child, tbody td:first-child { text-align: left; }
+tbody td { padding: .5rem; text-align: right; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+tbody tr:hover { background: var(--accent-soft); }
+.note { font-weight: 600; font-size: 1rem; }
+.note small { display: block; font-weight: 400; font-size: .72rem; color: var(--muted); letter-spacing: .04em; }
+.big { font-size: 1.02rem; font-weight: 600; }
+.calc { color: var(--accent); }
+td input[type=number] {
+  width: 5.2rem; text-align: right; padding: .32rem .45rem; font-size: .9rem;
+  background: var(--field); border: 1px solid var(--line); border-radius: 6px;
+}
+td input[type=number].wide { width: 6rem; }
+
+tfoot td { padding: .7rem .5rem 0; border-top: 2px solid var(--line); font-weight: 600; text-align: right; }
+tfoot td:first-child { text-align: left; color: var(--muted); font-weight: 500; font-size: .8rem; }
+
+@media (max-width: 720px) {
+  table, thead, tbody, tfoot, tr, td, th { display: block; }
+  thead { display: none; }
+  tbody tr {
+    border: 1px solid var(--line); border-radius: 10px; padding: .6rem .75rem;
+    margin-bottom: .6rem; display: grid; grid-template-columns: 1fr 1fr; gap: .35rem .8rem;
+  }
+  tbody tr:hover { background: transparent; }
+  tbody td { border: 0; padding: 0; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+  tbody td:first-child { grid-column: 1 / -1; margin-bottom: .2rem; order: 0; }
+  /* Lead with the two numbers you came for, then the supporting ones. */
+  tbody td:nth-child(3) { order: 1; }
+  tbody td:nth-child(4) { order: 2; }
+  tbody td:nth-child(2) { order: 3; }
+  tbody td:nth-child(5) { order: 4; }
+  tbody td:nth-child(6) { order: 5; }
+  tbody td::before { content: attr(data-label); font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  tbody td:first-child::before { display: none; }
+  tfoot tr { display: block; padding: .2rem .75rem; }
+  tfoot td { border: 0; padding: .1rem 0; display: flex; justify-content: space-between; }
+  tfoot td::before { content: attr(data-label); font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 500; }
+  tfoot td:first-child { display: none; }
+}
+
+footer { max-width: 1180px; margin: 0 auto; padding: 0 1.25rem 2.5rem; color: var(--muted); font-size: .78rem; }
+footer code { font-size: .95em; }
