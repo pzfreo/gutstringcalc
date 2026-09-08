@@ -17,11 +17,15 @@
 </header>
 
 <main>
-  <div>
+  <div class="controls">
     <section class="card">
       <h2>Instrument</h2>
       <div class="field">
-        <label for="inst">Instrument</label>
+        <label for="name">Name (optional)</label>
+        <input type="text" id="name" placeholder="e.g. Amati copy, 2019" maxlength="60" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="inst">Type</label>
         <select id="inst"></select>
       </div>
       <div class="row">
@@ -80,6 +84,7 @@
     <section class="card">
       <h2>Save &amp; share</h2>
       <div class="actions">
+        <button id="print">Print</button>
         <button id="copyLink">Copy link</button>
         <button id="export">Export JSON</button>
         <button id="import">Import JSON</button>
@@ -90,8 +95,9 @@
     </section>
   </div>
 
-  <section class="card">
+  <section class="card results">
     <h2 id="tableTitle">Strings</h2>
+    <dl class="printhead" id="printhead"></dl>
     <table>
       <thead>
         <tr>
