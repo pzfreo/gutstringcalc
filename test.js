@@ -48,6 +48,15 @@ near(targetTensions(fb, 4.2, 'feel', 0)[0], 4.2, 1e-9, 'n=0 collapses to equal t
 near(downforce(5, 158), 2 * 5 * Math.cos(79 * Math.PI / 180), 1e-12, 'downforce at 158 deg');
 near(downforce(5, 180), 0, 1e-12, 'a straight string presses on nothing');
 
+// Break angle defaults: viols flatter than the violin family.
+for (const [id, inst] of Object.entries(INSTRUMENTS)) {
+  const want = inst.family === 'viol' ? 152 : 158;
+  const ok = inst.angle === want;
+  if (!ok) failed++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} ${id}: default break angle ${inst.angle}`);
+}
+near(downforce(4.2, 152), 2 * 4.2 * Math.cos(76 * Math.PI / 180), 1e-12, 'downforce at 152 deg');
+
 // Every tuning must contain an A to anchor on, and only intervals we have ratios for.
 for (const [id, inst] of Object.entries(INSTRUMENTS)) {
   const off = inst.strings.map((s) => s[1]);

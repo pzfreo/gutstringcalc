@@ -1,5 +1,5 @@
 import {
-  INSTRUMENTS, DEFAULT_DENSITY, DEFAULT_ANGLE,
+  INSTRUMENTS, DEFAULT_DENSITY,
   frequencies, targetTensions, tensionForGauge, gaugeForTension, downforce,
 } from './strings.js';
 
@@ -21,7 +21,7 @@ function per(state, id = state.inst) {
       length: inst.length,
       density: DEFAULT_DENSITY,
       target: inst.tension,
-      angles: inst.strings.map(() => DEFAULT_ANGLE),
+      angles: inst.strings.map(() => inst.angle),
       gauges: null,
     };
   }

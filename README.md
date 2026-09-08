@@ -44,18 +44,18 @@ octave below the anchor A. That is what pure intervals do; it is not a rounding 
 
 ## Presets
 
-| | Length | Tension |
-|---|---|---|
-| Violin | 328 mm | 5.0 kg |
-| Viola | 375 mm | 4.8 kg |
-| Cello | 690 mm | 7.0 kg |
-| Treble viol | 325 mm | 3.2 kg |
-| Tenor viol | 450 mm | 3.8 kg |
-| Bass viol | 690 mm | 4.2 kg |
-| Bass viol, 7-string | 690 mm | 4.2 kg |
+| | Length | Tension | Break angle |
+|---|---|---|---|
+| Violin | 328 mm | 5.0 kg | 158° |
+| Viola | 375 mm | 4.8 kg | 158° |
+| Cello | 690 mm | 7.0 kg | 158° |
+| Treble viol | 325 mm | 3.2 kg | 152° |
+| Tenor viol | 450 mm | 3.8 kg | 152° |
+| Bass viol | 690 mm | 4.2 kg | 152° |
+| Bass viol, 7-string | 690 mm | 4.2 kg | 152° |
 
-Break angle defaults to 158° on every string. All of it is editable; **Reset instrument**
-puts the presets back.
+Viols carry a flatter break over the bridge than the violin family. All of it is
+editable; **Reset instrument** puts the presets back.
 
 ## Tests
 
